@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, fmt::Display};
+use std::{cmp::Ordering, env::Args, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 
@@ -9,18 +9,48 @@ pub(crate) enum Format {
 }
 
 #[derive(Debug)]
-pub(crate) struct Parameters<'a> {
+pub(crate) struct Parameters {
     pub clear_cache: bool,
-    pub username: &'a str,
-    pub formats: Vec<Format>,
+    pub username: String,
+    pub formats: Format,
+    pub quiet: bool,
 }
 
-impl<'a> Parameters<'a> {
-    pub fn new() -> Self {
+impl From<Args> for Parameters {
+    fn from(args: Args) -> Self {
+        let mut parameters = Parameters::default();
+        let args: Vec<String> = args.collect();
+
+        let mut i = 0;
+        for arg in &args {
+            match arg.as_str() {
+                "-c" => parameters.clear_cache = true,
+                "-u" => parameters.username = args[i + 1].clone(),
+                "-f" => {
+                    parameters.quiet = true;
+                    let format_str = args[i + 1].as_str();
+                    parameters.formats = match format_str {
+                        "json" => Format::Json,
+                        "toml" => Format::Toml,
+                        _ => panic!("Picked unsupported output file format (json | toml)"),
+                    }
+                }
+                _ => {}
+            }
+            i += 1;
+        }
+
+        parameters
+    }
+}
+
+impl Default for Parameters {
+    fn default() -> Self {
         Self {
             clear_cache: false,
-            username: "",
-            formats: vec![],
+            username: String::new(),
+            formats: Format::Json,
+            quiet: false,
         }
     }
 }
