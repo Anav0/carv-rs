@@ -1,8 +1,4 @@
-use std::{
-    cmp::Ordering,
-    env::{self, Args},
-    fmt::Display,
-};
+use std::{cmp::Ordering, env::Args, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 
